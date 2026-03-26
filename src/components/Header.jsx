@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Search, ShoppingCart, User, Ticket } from 'lucide-react'
+import { Search, ShoppingCart, User, Ticket, LogOut, PlusSquare, Package } from 'lucide-react'
 
 function Header({ logo, user, searchTerm, setSearchTerm, onLogout }) {
   return (
@@ -26,6 +26,26 @@ function Header({ logo, user, searchTerm, setSearchTerm, onLogout }) {
               <Search size={20} />
             </button>
           </div>
+
+          {(user?.role === 'seller' || user?.role === 'admin') && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Link
+                to="/seller/add-product"
+                className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-sky-700 shadow hover:bg-sky-50"
+              >
+                <PlusSquare size={16} />
+                เพิ่มสินค้า
+              </Link>
+
+              <Link
+                to="/seller/my-products"
+                className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-sky-700 shadow hover:bg-sky-50"
+              >
+                <Package size={16} />
+                สินค้าของฉัน
+              </Link>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-5">
@@ -40,23 +60,33 @@ function Header({ logo, user, searchTerm, setSearchTerm, onLogout }) {
             </span>
           </button>
 
-          <button onClick={onLogout} className="flex items-center gap-2">
-            {user?.avatar_url ? (
-              <img
-                src={user.avatar_url}
-                alt="Profile"
-                className="h-10 w-10 rounded-full border-2 border-white object-cover shadow"
-              />
-            ) : (
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow">
-                <User size={22} className="text-sky-700" />
-              </div>
-            )}
+          <div className="flex items-center gap-2">
+            <Link to="/profile" className="flex items-center gap-2">
+              {user?.avatar_url ? (
+                <img
+                  src={user.avatar_url}
+                  alt="Profile"
+                  className="h-10 w-10 rounded-full border-2 border-white object-cover shadow"
+                />
+              ) : (
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow">
+                  <User size={22} className="text-sky-700" />
+                </div>
+              )}
 
-            <span className="max-w-[140px] truncate text-sm font-medium text-sky-800">
-              {user?.username || user?.email || 'Profile'}
-            </span>
-          </button>
+              <span className="max-w-[140px] truncate text-sm font-medium text-sky-800">
+                {user?.username || user?.email || 'Profile'}
+              </span>
+            </Link>
+
+            <button
+              onClick={onLogout}
+              className="rounded-full bg-white p-2 shadow transition hover:bg-red-50"
+              title="Logout"
+            >
+              <LogOut size={18} className="text-red-500" />
+            </button>
+          </div>
         </div>
       </div>
     </header>

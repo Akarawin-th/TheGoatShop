@@ -1,4 +1,8 @@
+import { useNavigate } from 'react-router-dom'
+
 function ProductGrid({ products }) {
+  const navigate = useNavigate()
+
   return (
     <section className="mx-auto max-w-7xl px-4 pb-10">
       <div className="mb-4 flex items-center justify-between">
@@ -12,17 +16,20 @@ function ProductGrid({ products }) {
         {products.map((product) => (
           <div
             key={product.id}
-            className="group overflow-hidden rounded-2xl bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+            onClick={() => navigate(`/product/${product.id}`)}
+            className="group cursor-pointer overflow-hidden rounded-2xl bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
           >
             <div className="relative">
               <img
-                src={product.image}
+                src={product.image || product.image_url || 'https://placehold.co/600x600?text=No+Image'}
                 alt={product.name}
                 className="h-52 w-full object-cover"
               />
-              <span className="absolute left-2 top-2 rounded bg-red-500 px-2 py-1 text-xs font-bold text-white">
-                -{product.discount}
-              </span>
+              {product.discount && (
+                <span className="absolute left-2 top-2 rounded bg-red-500 px-2 py-1 text-xs font-bold text-white">
+                  -{product.discount}
+                </span>
+              )}
             </div>
 
             <div className="p-4">
@@ -34,15 +41,23 @@ function ProductGrid({ products }) {
                 <span className="text-lg font-bold text-sky-500">
                   ฿{product.price}
                 </span>
-                <span className="text-sm text-gray-400 line-through">
-                  ฿{product.oldPrice}
-                </span>
+
+                {product.oldPrice && (
+                  <span className="text-sm text-gray-400 line-through">
+                    ฿{product.oldPrice}
+                  </span>
+                )}
               </div>
 
               <div className="mt-3 flex items-center justify-between">
-                <span className="text-xs text-gray-500">ขายแล้ว 120 ชิ้น</span>
-                <button className="rounded-lg bg-sky-400 px-3 py-1.5 text-sm text-white opacity-0 transition group-hover:opacity-100">
-                  เพิ่มลงตะกร้า
+                <span className="text-xs text-gray-500">
+                  {product.stock !== undefined ? `คงเหลือ ${product.stock}` : 'พร้อมขาย'}
+                </span>
+                <button
+                  onClick={(e) => e.stopPropagation()}
+                  className="rounded-lg bg-sky-400 px-3 py-1.5 text-sm text-white opacity-0 transition group-hover:opacity-100"
+                >
+                  ดูสินค้า
                 </button>
               </div>
             </div>

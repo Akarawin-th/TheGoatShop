@@ -16,6 +16,7 @@ function Home() {
   const [currentBanner, setCurrentBanner] = useState(0)
   const [profile, setProfile] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [products, setProducts] = useState([])
   const navigate = useNavigate()
 
   const banners = [banner1, banner2, banner3]
@@ -31,75 +32,8 @@ function Home() {
     'สินค้าขายดี',
   ]
 
-  const products = [
-    {
-      id: 1,
-      name: 'เสื้อเชิ้ตผู้ชายลายเรียบ',
-      price: 390,
-      oldPrice: 590,
-      discount: '34%',
-      image: banner1,
-    },
-    {
-      id: 2,
-      name: 'กางเกงขายาวทรงสวย',
-      price: 490,
-      oldPrice: 690,
-      discount: '29%',
-      image: banner2,
-    },
-    {
-      id: 3,
-      name: 'รองเท้าผ้าใบแฟชั่น',
-      price: 790,
-      oldPrice: 990,
-      discount: '20%',
-      image: banner3,
-    },
-    {
-      id: 4,
-      name: 'แจ็คเก็ตสไตล์มินิมอล',
-      price: 690,
-      oldPrice: 890,
-      discount: '22%',
-      image: banner1,
-    },
-    {
-      id: 5,
-      name: 'กระเป๋าสะพายลำลอง',
-      price: 550,
-      oldPrice: 750,
-      discount: '27%',
-      image: banner2,
-    },
-    {
-      id: 6,
-      name: 'หมวกแฟชั่นเรียบหรู',
-      price: 250,
-      oldPrice: 350,
-      discount: '29%',
-      image: banner3,
-    },
-    {
-      id: 7,
-      name: 'เสื้อยืด Oversize',
-      price: 320,
-      oldPrice: 420,
-      discount: '24%',
-      image: banner1,
-    },
-    {
-      id: 8,
-      name: 'ชุดเซตแฟชั่นประจำวัน',
-      price: 890,
-      oldPrice: 1190,
-      discount: '25%',
-      image: banner2,
-    },
-  ]
-
   useEffect(() => {
-    const getProfile = async () => {
+    const getProfileAndProducts = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser()
@@ -109,21 +43,34 @@ function Home() {
         return
       }
 
-      const { data, error } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single()
 
-      if (error) {
-        alert(error.message)
+      if (profileError) {
+        alert(profileError.message)
         return
       }
 
-      setProfile(data)
+      setProfile(profileData)
+
+      const { data: productData, error: productError } = await supabase
+        .from('products')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+
+      if (productError) {
+        alert(productError.message)
+        return
+      }
+
+      setProducts(productData || [])
     }
 
-    getProfile()
+    getProfileAndProducts()
   }, [navigate])
 
   const nextBanner = () => {
@@ -138,6 +85,10 @@ function Home() {
     await supabase.auth.signOut()
     navigate('/login')
   }
+
+  const filteredProducts = products.filter((product) =>
+    product.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  )
 
   return (
     <div className="min-h-screen bg-[#f5f5f5]">
@@ -159,7 +110,7 @@ function Home() {
         prevBanner={prevBanner}
       />
 
-      <ProductGrid products={products} />
+      <ProductGrid products={filteredProducts} />
     </div>
   )
 }
