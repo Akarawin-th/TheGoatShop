@@ -119,7 +119,7 @@ function Login() {
           />
         </div>
 
-        <div className="relative mb-4">
+        <div className="relative mb-2">
           <label className="mb-2 block text-sm font-medium text-gray-700">
             Password
           </label>
@@ -139,6 +139,15 @@ function Login() {
           >
             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
+        </div>
+
+        <div className="mb-4 text-right">
+          <Link
+            to="/forgot-password"
+            className="text-sm font-medium text-sky-500 hover:underline"
+          >
+            ลืมรหัสผ่าน?
+          </Link>
         </div>
 
         <button

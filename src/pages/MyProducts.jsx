@@ -199,19 +199,26 @@ function MyProducts() {
                   </p>
 
                   <div className="mt-4 flex gap-2">
-                    <button
-                      onClick={() => navigate(`/product/${product.id}`)}
-                      className="flex-1 rounded-lg bg-sky-100 px-4 py-2 text-sky-700 hover:bg-sky-200"
-                    >
-                      ดูสินค้า
+                      <button
+                          onClick={() => navigate(`/product/${product.id}`)}
+                          className="flex-1 rounded-lg bg-sky-100 px-4 py-2 text-sky-700 hover:bg-sky-200"
+                      >
+                        ดูสินค้า
                     </button>
 
-                    <button
-                      onClick={() => handleDeleteProduct(product.id)}
-                      className="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600"
-                    >
-                      ลบ
+                      <button
+                          onClick={() => navigate(`/seller/edit-product/${product.id}`)}
+                          className="rounded-lg bg-yellow-400 px-4 py-2 text-white hover:bg-yellow-500"
+                      >
+                        แก้ไข
                     </button>
+
+                      <button
+                          onClick={() => handleDeleteProduct(product.id)}
+                          className="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600"
+                      >
+                        ลบ
+                       </button>
                   </div>
                 </div>
               </div>

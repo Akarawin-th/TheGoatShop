@@ -1,7 +1,17 @@
 import { Link } from 'react-router-dom'
-import { Search, ShoppingCart, User, Ticket, LogOut, PlusSquare, Package } from 'lucide-react'
+import {
+  Search,
+  ShoppingCart,
+  User,
+  Ticket,
+  LogOut,
+  PlusSquare,
+  Package,
+  ClipboardList,
+  ShieldCheck,
+} from 'lucide-react'
 
-function Header({ logo, user, searchTerm, setSearchTerm, onLogout }) {
+function Header({ logo, user, searchTerm, setSearchTerm, onLogout, cartCount = 0 }) {
   return (
     <header className="bg-[#bfe9ff] text-gray-800 shadow">
       <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-5">
@@ -44,6 +54,24 @@ function Header({ logo, user, searchTerm, setSearchTerm, onLogout }) {
                 <Package size={16} />
                 สินค้าของฉัน
               </Link>
+
+              <Link
+                to="/seller/orders"
+                className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-sky-700 shadow hover:bg-sky-50"
+              >
+                <ClipboardList size={16} />
+                ออเดอร์ร้าน
+              </Link>
+
+              {user?.role === 'admin' && (
+                <Link
+                  to="/admin"
+                  className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-sky-700 shadow hover:bg-sky-50"
+                >
+                  <ShieldCheck size={16} />
+                  แอดมิน
+                </Link>
+              )}
             </div>
           )}
         </div>
@@ -53,12 +81,15 @@ function Header({ logo, user, searchTerm, setSearchTerm, onLogout }) {
             <Ticket size={26} className="text-sky-700" />
           </button>
 
-          <button className="relative">
+          <Link to="/cart" id="cart-icon" className="relative">
             <ShoppingCart size={28} className="text-sky-700" />
-            <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs font-bold text-white">
-              2
-            </span>
-          </button>
+
+            {cartCount > 0 && (
+              <span className="absolute -right-2 -top-2 flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-gradient-to-r from-pink-500 to-red-500 px-1 text-[10px] font-bold leading-none text-white shadow-md ring-2 ring-white">
+                {cartCount > 99 ? '99+' : cartCount}
+              </span>
+            )}
+          </Link>
 
           <div className="flex items-center gap-2">
             <Link to="/profile" className="flex items-center gap-2">

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { getCartItemCount } from '../lib/cart'
 
 import Header from '../components/Header'
 import CategoryBar from '../components/CategoryBar'
@@ -17,6 +18,7 @@ function Home() {
   const [profile, setProfile] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [products, setProducts] = useState([])
+  const [cartCount, setCartCount] = useState(0)
   const navigate = useNavigate()
 
   const banners = [banner1, banner2, banner3]
@@ -68,6 +70,13 @@ function Home() {
       }
 
       setProducts(productData || [])
+
+      try {
+        const count = await getCartItemCount(user.id)
+        setCartCount(count)
+      } catch {
+        setCartCount(0)
+      }
     }
 
     getProfileAndProducts()
@@ -98,6 +107,7 @@ function Home() {
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         onLogout={handleLogout}
+        cartCount={cartCount}
       />
 
       <CategoryBar categories={categories} />

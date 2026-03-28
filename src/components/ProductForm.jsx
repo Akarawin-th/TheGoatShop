@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Swal from 'sweetalert2'
+import { supabase } from '../lib/supabase'
 
 function ProductForm({ initialData = {}, onSubmit, loading }) {
   const [name, setName] = useState(initialData.name || '')
@@ -8,6 +9,9 @@ function ProductForm({ initialData = {}, onSubmit, loading }) {
   const [category, setCategory] = useState(initialData.category || '')
   const [description, setDescription] = useState(initialData.description || '')
   const [imageUrl, setImageUrl] = useState(initialData.image_url || '')
+  const [imageFile, setImageFile] = useState(null)
+  const [previewUrl, setPreviewUrl] = useState(initialData.image_url || '')
+  const [uploadingImage, setUploadingImage] = useState(false)
 
   const showWarningPopup = (text) => {
     Swal.fire({
@@ -17,6 +21,52 @@ function ProductForm({ initialData = {}, onSubmit, loading }) {
       confirmButtonText: 'ตกลง',
       confirmButtonColor: '#38bdf8',
     })
+  }
+
+  const showErrorPopup = (text) => {
+    Swal.fire({
+      title: 'เกิดข้อผิดพลาด',
+      text,
+      icon: 'error',
+      confirmButtonText: 'ปิด',
+      confirmButtonColor: '#ef4444',
+    })
+  }
+
+  const uploadProductImage = async () => {
+    if (!imageFile) return imageUrl || null
+
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp']
+    if (!allowedTypes.includes(imageFile.type)) {
+      throw new Error('กรุณาอัปโหลดไฟล์ png, jpg, jpeg หรือ webp')
+    }
+
+    setUploadingImage(true)
+
+    const fileExt = imageFile.name.split('.').pop()
+    const filePath = `products/product-${Date.now()}.${fileExt}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('product-images')
+      .upload(filePath, imageFile, { upsert: true })
+
+    setUploadingImage(false)
+
+    if (uploadError) throw uploadError
+
+    const { data } = supabase.storage
+      .from('product-images')
+      .getPublicUrl(filePath)
+
+    return data.publicUrl
+  }
+
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setImageFile(file)
+    setPreviewUrl(URL.createObjectURL(file))
   }
 
   const handleSubmit = async (e) => {
@@ -47,14 +97,20 @@ function ProductForm({ initialData = {}, onSubmit, loading }) {
       return
     }
 
-    await onSubmit({
-      name: name.trim(),
-      price: Number(price),
-      stock: Number(stock),
-      category: category.trim(),
-      description: description.trim(),
-      image_url: imageUrl.trim(),
-    })
+    try {
+      const uploadedImageUrl = await uploadProductImage()
+
+      await onSubmit({
+        name: name.trim(),
+        price: Number(price),
+        stock: Number(stock),
+        category: category.trim(),
+        description: description.trim(),
+        image_url: uploadedImageUrl,
+      })
+    } catch (error) {
+      showErrorPopup(error.message)
+    }
   }
 
   return (
@@ -115,15 +171,27 @@ function ProductForm({ initialData = {}, onSubmit, loading }) {
 
       <div>
         <label className="mb-2 block text-sm font-medium text-gray-700">
-          ลิงก์รูปสินค้า
+          รูปสินค้า
         </label>
+
         <input
-          type="text"
-          value={imageUrl}
-          onChange={(e) => setImageUrl(e.target.value)}
-          placeholder="วาง URL รูปสินค้า เช่น https://..."
+          type="file"
+          accept="image/png,image/jpeg,image/jpg,image/webp"
+          onChange={handleImageChange}
           className="w-full rounded-lg border p-3 outline-none focus:border-sky-400"
         />
+
+        {previewUrl && (
+          <img
+            src={previewUrl}
+            alt="preview"
+            className="mt-3 h-40 w-40 rounded-xl object-cover shadow"
+          />
+        )}
+
+        {uploadingImage && (
+          <p className="mt-2 text-sm text-sky-500">กำลังอัปโหลดรูป...</p>
+        )}
       </div>
 
       <div>
@@ -141,10 +209,10 @@ function ProductForm({ initialData = {}, onSubmit, loading }) {
 
       <button
         type="submit"
-        disabled={loading}
+        disabled={loading || uploadingImage}
         className="w-full rounded-lg bg-sky-400 py-3 font-semibold text-white transition hover:bg-sky-500 disabled:bg-sky-200"
       >
-        {loading ? 'กำลังบันทึก...' : 'บันทึกสินค้า'}
+        {loading || uploadingImage ? 'กำลังบันทึก...' : 'บันทึกสินค้า'}
       </button>
     </form>
   )
