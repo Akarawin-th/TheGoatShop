@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 function HeroSection({
@@ -7,6 +8,8 @@ function HeroSection({
   nextBanner,
   prevBanner,
 }) {
+  const navigate = useNavigate()
+
   return (
     <section className="mx-auto max-w-7xl px-4 py-6">
       <div className="grid gap-4 lg:grid-cols-3">
@@ -14,7 +17,7 @@ function HeroSection({
           <img
             src={banners[currentBanner]}
             alt="Main Banner"
-            className="h-[340px] w-full object-cover"
+            className="block h-[340px] w-full object-cover"
           />
 
           <button
@@ -51,20 +54,20 @@ function HeroSection({
             <p className="mt-2 text-sm text-sky-50">
               โปรพิเศษเฉพาะวันนี้ รีบช้อปก่อนหมดเวลา
             </p>
-            <button className="mt-4 rounded-full bg-white px-5 py-2 font-semibold text-sky-500">
+            <button
+              onClick={() => navigate('/coming-soon')}
+              className="mt-4 rounded-full bg-white px-5 py-2 font-semibold text-sky-500 transition hover:bg-sky-50"
+            >
               ดูสินค้า
             </button>
           </div>
 
           <div className="rounded-2xl bg-gradient-to-r from-cyan-300 to-sky-300 p-6 text-white shadow">
             <p className="text-sm">คูปองพิเศษ</p>
-            <h2 className="mt-2 text-2xl font-extrabold">โค้ด GOAT10</h2>
+            <h2 className="mt-2 text-2xl font-extrabold">โค้ด DINOGANG</h2>
             <p className="mt-2 text-sm text-cyan-50">
               รับส่วนลดทันทีเมื่อสั่งซื้อครบตามเงื่อนไข
             </p>
-            <button className="mt-4 rounded-full bg-white px-5 py-2 font-semibold text-sky-500">
-              รับคูปอง
-            </button>
           </div>
         </div>
       </div>

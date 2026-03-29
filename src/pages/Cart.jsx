@@ -2,7 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Swal from 'sweetalert2'
 import { supabase } from '../lib/supabase'
-import { getCartItems, removeCartItem, updateCartItemQuantity } from '../lib/cart'
+import {
+  getCartItems,
+  removeCartItem,
+  updateCartItemQuantity,
+} from '../lib/cart'
 
 function Cart() {
   const [user, setUser] = useState(null)
@@ -31,7 +35,6 @@ function Cart() {
           title: 'โหลดตะกร้าไม่สำเร็จ',
           text: error.message,
           icon: 'error',
-          confirmButtonColor: '#ef4444',
         })
       } finally {
         setLoading(false)
@@ -48,20 +51,33 @@ function Cart() {
     }, 0)
   }, [items])
 
+  const showToast = (title) => {
+    Swal.fire({
+      toast: true,
+      position: 'top-end',
+      icon: 'success',
+      title,
+      showConfirmButton: false,
+      timer: 1200,
+    })
+  }
+
   const handleIncrease = async (item) => {
     try {
       await updateCartItemQuantity(item.id, item.quantity + 1)
+
       setItems((prev) =>
         prev.map((i) =>
           i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
         )
       )
+
+      showToast('เพิ่มจำนวนสินค้าแล้ว')
     } catch (error) {
       Swal.fire({
         title: 'เพิ่มจำนวนไม่สำเร็จ',
         text: error.message,
         icon: 'error',
-        confirmButtonColor: '#ef4444',
       })
     }
   }
@@ -71,17 +87,19 @@ function Cart() {
 
     try {
       await updateCartItemQuantity(item.id, item.quantity - 1)
+
       setItems((prev) =>
         prev.map((i) =>
           i.id === item.id ? { ...i, quantity: i.quantity - 1 } : i
         )
       )
+
+      showToast('ลดจำนวนสินค้าแล้ว')
     } catch (error) {
       Swal.fire({
         title: 'ลดจำนวนไม่สำเร็จ',
         text: error.message,
         icon: 'error',
-        confirmButtonColor: '#ef4444',
       })
     }
   }
@@ -93,8 +111,6 @@ function Cart() {
       showCancelButton: true,
       confirmButtonText: 'ลบ',
       cancelButtonText: 'ยกเลิก',
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#38bdf8',
     })
 
     if (!result.isConfirmed) return
@@ -102,12 +118,13 @@ function Cart() {
     try {
       await removeCartItem(itemId)
       setItems((prev) => prev.filter((item) => item.id !== itemId))
+
+      showToast('ลบสินค้าแล้ว')
     } catch (error) {
       Swal.fire({
         title: 'ลบสินค้าไม่สำเร็จ',
         text: error.message,
         icon: 'error',
-        confirmButtonColor: '#ef4444',
       })
     }
   }
@@ -116,15 +133,14 @@ function Cart() {
     navigate('/checkout')
   }
 
-  if (loading) {
-    return <div className="p-6">Loading...</div>
-  }
+  if (loading) return <div className="p-6">Loading...</div>
 
   return (
     <div className="min-h-screen bg-[#f5f5f5] px-4 py-10">
       <div className="mx-auto max-w-6xl">
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-3xl font-bold text-gray-800">ตะกร้าสินค้า</h1>
+
           <button
             onClick={() => navigate('/home')}
             className="rounded-lg bg-sky-100 px-4 py-2 text-sky-700 hover:bg-sky-200"
@@ -133,20 +149,32 @@ function Cart() {
           </button>
         </div>
 
+        {/* 🔥 EMPTY STATE */}
         {items.length === 0 ? (
           <div className="rounded-2xl bg-white p-10 text-center shadow">
-            <h2 className="text-xl font-bold text-gray-700">ยังไม่มีสินค้าในตะกร้า</h2>
+            <h2 className="text-xl font-bold text-gray-700">
+              ตะกร้ายังว่างอยู่ 🛒
+            </h2>
+
             <p className="mt-2 text-sm text-gray-500">
-              ลองเลือกสินค้าที่คุณสนใจแล้วเพิ่มลงตะกร้าได้เลย
+              ไปเลือกสินค้าที่คุณชอบกันเลย
             </p>
+
+            <button
+              onClick={() => navigate('/home')}
+              className="mt-6 rounded-lg bg-sky-400 px-5 py-3 font-semibold text-white hover:bg-sky-500"
+            >
+              ไปเลือกสินค้า
+            </button>
           </div>
         ) : (
           <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+            {/* 🔥 ITEM LIST */}
             <div className="space-y-4">
               {items.map((item) => (
                 <div
                   key={item.id}
-                  className="flex gap-4 rounded-2xl bg-white p-4 shadow"
+                  className="flex gap-4 rounded-2xl bg-white p-4 shadow transition hover:shadow-lg"
                 >
                   <div className="h-28 w-28 overflow-hidden rounded-xl bg-gray-100">
                     {item.products?.image_url ? (
@@ -167,8 +195,9 @@ function Cart() {
                       <h2 className="text-lg font-bold text-gray-800">
                         {item.products?.name}
                       </h2>
+
                       <p className="mt-1 text-sm text-gray-500">
-                        ราคา ฿{item.products?.price}
+                        ฿{Number(item.products?.price || 0).toLocaleString()}
                       </p>
                     </div>
 
@@ -176,16 +205,18 @@ function Cart() {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleDecrease(item)}
-                          className="rounded-lg bg-sky-100 px-3 py-1 text-sky-700"
+                          className="rounded-lg bg-sky-100 px-3 py-1 text-sky-700 hover:bg-sky-200"
                         >
                           -
                         </button>
+
                         <span className="min-w-[24px] text-center font-medium">
                           {item.quantity}
                         </span>
+
                         <button
                           onClick={() => handleIncrease(item)}
-                          className="rounded-lg bg-sky-100 px-3 py-1 text-sky-700"
+                          className="rounded-lg bg-sky-100 px-3 py-1 text-sky-700 hover:bg-sky-200"
                         >
                           +
                         </button>
@@ -203,8 +234,11 @@ function Cart() {
               ))}
             </div>
 
+            {/* 🔥 SUMMARY */}
             <div className="h-fit rounded-2xl bg-white p-6 shadow">
-              <h2 className="text-xl font-bold text-gray-800">สรุปคำสั่งซื้อ</h2>
+              <h2 className="text-xl font-bold text-gray-800">
+                สรุปคำสั่งซื้อ
+              </h2>
 
               <div className="mt-4 flex items-center justify-between text-gray-600">
                 <span>จำนวนสินค้า</span>
@@ -213,7 +247,9 @@ function Cart() {
 
               <div className="mt-3 flex items-center justify-between text-lg font-bold text-gray-800">
                 <span>รวมทั้งหมด</span>
-                <span>฿{totalPrice}</span>
+                <span className="text-sky-600">
+                  ฿{totalPrice.toLocaleString()}
+                </span>
               </div>
 
               <button

@@ -17,7 +17,10 @@ import SellerDashboard from './pages/SellerDashboard'
 import SellerOrders from './pages/SellerOrders'
 import OrderDetail from './pages/OrderDetail'
 import EditProduct from './pages/EditProduct'
+import SellerCoupons from './pages/SellerCoupons'
 import AdminDashboard from './pages/AdminDashboard'
+import ComingSoon from './pages/ComingSoon'
+import Coupons from './pages/Coupons'
 
 function App() {
   return (
@@ -35,13 +38,16 @@ function App() {
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
+        <Route path="/coupons" element={<Coupons />} />
         <Route path="/orders" element={<Orders />} />
         <Route path="/orders/:orderId/upload-slip" element={<UploadSlip />} />
         <Route path="/seller" element={<SellerDashboard />} />
         <Route path="/seller/orders" element={<SellerOrders />} />
         <Route path="/orders/:orderId" element={<OrderDetail />} />
         <Route path="/seller/edit-product/:productId" element={<EditProduct />} />
-        <Route path="/admin" element={<AdminDashboard />} />    
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/seller/coupons" element={<SellerCoupons />} />
+        <Route path="/coming-soon" element={<ComingSoon />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </div>

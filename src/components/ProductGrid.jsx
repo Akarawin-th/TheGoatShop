@@ -1,13 +1,24 @@
 import { useNavigate } from 'react-router-dom'
 
-function ProductGrid({ products }) {
+function ProductGrid({ products, selectedCategory, onClearCategory }) {
   const navigate = useNavigate()
 
   return (
     <section className="mx-auto max-w-7xl px-4 pb-10">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-800">สินค้าแนะนำ</h2>
-        <button className="text-sm font-medium text-sky-500 hover:underline">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800">สินค้าทั้งหมด</h2>
+          {selectedCategory && selectedCategory !== 'ทั้งหมด' && (
+            <p className="mt-1 text-sm text-gray-500">
+              หมวดหมู่: {selectedCategory}
+            </p>
+          )}
+        </div>
+
+        <button
+          onClick={onClearCategory}
+          className="text-sm font-medium text-sky-500 hover:underline"
+        >
           ดูทั้งหมด
         </button>
       </div>
@@ -17,29 +28,40 @@ function ProductGrid({ products }) {
           <div
             key={product.id}
             onClick={() => navigate(`/product/${product.id}`)}
-            className="group cursor-pointer overflow-hidden rounded-2xl bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+            className="group cursor-pointer overflow-hidden rounded-2xl bg-white shadow-sm transition duration-300 hover:-translate-y-2 hover:shadow-xl"
           >
-            <div className="relative">
+            <div className="relative overflow-hidden">
               <img
-                src={product.image || product.image_url || 'https://placehold.co/600x600?text=No+Image'}
+                src={
+                  product.image ||
+                  product.image_url ||
+                  'https://placehold.co/600x600?text=No+Image'
+                }
                 alt={product.name}
-                className="h-52 w-full object-cover"
+                className="h-52 w-full object-cover transition duration-300 group-hover:scale-110"
               />
+
               {product.discount && (
-                <span className="absolute left-2 top-2 rounded bg-red-500 px-2 py-1 text-xs font-bold text-white">
+                <span className="absolute left-2 top-2 rounded-full bg-red-500 px-3 py-1 text-xs font-bold text-white shadow">
                   -{product.discount}
                 </span>
               )}
             </div>
 
             <div className="p-4">
-              <h3 className="min-h-[48px] text-sm font-medium text-gray-800">
+              <h3 className="min-h-[48px] line-clamp-2 text-sm font-medium text-gray-800">
                 {product.name}
               </h3>
 
+              <div className="mt-2">
+                <span className="inline-block rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-600">
+                  {product.category || 'ไม่มีหมวดหมู่'}
+                </span>
+              </div>
+
               <div className="mt-3 flex items-center gap-2">
                 <span className="text-lg font-bold text-sky-500">
-                  ฿{product.price}
+                  ฿{Number(product.price || 0).toLocaleString()}
                 </span>
 
                 {product.oldPrice && (
@@ -51,11 +73,14 @@ function ProductGrid({ products }) {
 
               <div className="mt-3 flex items-center justify-between">
                 <span className="text-xs text-gray-500">
-                  {product.stock !== undefined ? `คงเหลือ ${product.stock}` : 'พร้อมขาย'}
+                  {product.stock !== undefined
+                    ? `คงเหลือ ${product.stock}`
+                    : 'พร้อมขาย'}
                 </span>
+
                 <button
                   onClick={(e) => e.stopPropagation()}
-                  className="rounded-lg bg-sky-400 px-3 py-1.5 text-sm text-white opacity-0 transition group-hover:opacity-100"
+                  className="translate-y-2 rounded-lg bg-sky-400 px-3 py-1.5 text-sm text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 hover:bg-sky-500"
                 >
                   ดูสินค้า
                 </button>

@@ -12,10 +12,12 @@ import {
 } from 'lucide-react'
 
 function Header({ logo, user, searchTerm, setSearchTerm, onLogout, cartCount = 0 }) {
+  const isSellerOrAdmin = user?.role === 'seller' || user?.role === 'admin'
+
   return (
     <header className="bg-[#bfe9ff] text-gray-800 shadow">
-      <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-5">
-        <Link to="/home" className="flex min-w-fit items-center">
+      <div className="mx-auto flex max-w-7xl items-start gap-4 px-4 py-5">
+        <Link to="/home" className="flex min-w-fit items-center pt-1">
           <img
             src={logo}
             alt="TheGoatShop Logo"
@@ -24,68 +26,93 @@ function Header({ logo, user, searchTerm, setSearchTerm, onLogout, cartCount = 0
         </Link>
 
         <div className="flex-1">
-          <div className="flex overflow-hidden rounded-md bg-white shadow">
-            <input
-              type="text"
-              placeholder="ค้นหาสินค้า, หมวดหมู่, โปรโมชั่น..."
-              className="w-full px-4 py-3 text-sm text-gray-800 outline-none"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <button className="flex items-center justify-center bg-sky-400 px-5 text-white transition hover:bg-sky-500">
-              <Search size={20} />
-            </button>
-          </div>
+          <div className="flex min-h-[86px] flex-col justify-between">
+            <div className="flex overflow-hidden rounded-md bg-white shadow">
+              <input
+                type="text"
+                placeholder="ค้นหาสินค้า, หมวดหมู่, โปรโมชั่น..."
+                className="w-full px-4 py-3 text-sm text-gray-800 outline-none"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <button className="flex items-center justify-center bg-sky-400 px-5 text-white transition hover:bg-sky-500">
+                <Search size={20} />
+              </button>
+            </div>
 
-          {(user?.role === 'seller' || user?.role === 'admin') && (
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Link
-                to="/seller/add-product"
-                className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-sky-700 shadow hover:bg-sky-50"
-              >
-                <PlusSquare size={16} />
-                เพิ่มสินค้า
-              </Link>
+            <div className="mt-3 min-h-[40px]">
+              {isSellerOrAdmin ? (
+                <div className="flex flex-wrap gap-2">
+                  <Link
+                    to="/seller/add-product"
+                    className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-sky-700 shadow hover:bg-sky-50"
+                  >
+                    <PlusSquare size={16} />
+                    เพิ่มสินค้า
+                  </Link>
 
-              <Link
-                to="/seller/my-products"
-                className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-sky-700 shadow hover:bg-sky-50"
-              >
-                <Package size={16} />
-                สินค้าของฉัน
-              </Link>
+                  <Link
+                    to="/seller/my-products"
+                    className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-sky-700 shadow hover:bg-sky-50"
+                  >
+                    <Package size={16} />
+                    สินค้าของฉัน
+                  </Link>
 
-              <Link
-                to="/seller/orders"
-                className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-sky-700 shadow hover:bg-sky-50"
-              >
-                <ClipboardList size={16} />
-                ออเดอร์ร้าน
-              </Link>
+                  <Link
+                    to="/seller/orders"
+                    className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-sky-700 shadow hover:bg-sky-50"
+                  >
+                    <ClipboardList size={16} />
+                    ออเดอร์ร้าน
+                  </Link>
 
-              {user?.role === 'admin' && (
-                <Link
-                  to="/admin"
-                  className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-sky-700 shadow hover:bg-sky-50"
-                >
-                  <ShieldCheck size={16} />
-                  แอดมิน
-                </Link>
+                  {user?.role === 'admin' && (
+                    <Link
+                      to="/admin"
+                      className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-sky-700 shadow hover:bg-sky-50"
+                    >
+                      <ShieldCheck size={16} />
+                      แอดมิน
+                    </Link>
+                  )}
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  <Link
+                    to="/orders"
+                    className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-sky-700 shadow hover:bg-sky-50"
+                  >
+                    <ClipboardList size={16} />
+                    คำสั่งซื้อของฉัน
+                  </Link>
+                </div>
               )}
             </div>
-          )}
+          </div>
         </div>
 
-        <div className="flex items-center gap-5">
-          <button className="relative">
-            <Ticket size={26} className="text-sky-700" />
-          </button>
+        <div className="flex min-h-[86px] items-start gap-3 pt-1">
+          {isSellerOrAdmin && (
+            <Link
+              to="/seller/coupons"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow transition hover:bg-sky-50"
+              title="จัดการคูปอง"
+            >
+              <Ticket size={22} className="text-sky-700" />
+            </Link>
+          )}
 
-          <Link to="/cart" id="cart-icon" className="relative">
-            <ShoppingCart size={28} className="text-sky-700" />
+          <Link
+            to="/cart"
+            id="cart-icon"
+            className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white shadow transition hover:bg-sky-50"
+            title="ตะกร้า"
+          >
+            <ShoppingCart size={22} className="text-sky-700" />
 
             {cartCount > 0 && (
-              <span className="absolute -right-2 -top-2 flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-gradient-to-r from-pink-500 to-red-500 px-1 text-[10px] font-bold leading-none text-white shadow-md ring-2 ring-white">
+              <span className="absolute -right-1 -top-1 flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-gradient-to-r from-pink-500 to-red-500 px-1 text-[10px] font-bold leading-none text-white shadow-md ring-2 ring-white">
                 {cartCount > 99 ? '99+' : cartCount}
               </span>
             )}
@@ -112,7 +139,7 @@ function Header({ logo, user, searchTerm, setSearchTerm, onLogout, cartCount = 0
 
             <button
               onClick={onLogout}
-              className="rounded-full bg-white p-2 shadow transition hover:bg-red-50"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow transition hover:bg-red-50"
               title="Logout"
             >
               <LogOut size={18} className="text-red-500" />

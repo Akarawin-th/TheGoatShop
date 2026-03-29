@@ -1,20 +1,27 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import Swal from 'sweetalert2'
 import { supabase } from '../lib/supabase'
 import { getCartItems } from '../lib/cart'
+import { validateCoupon, applyCoupon } from '../lib/coupon'
 
 function Checkout() {
   const [user, setUser] = useState(null)
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [couponLoading, setCouponLoading] = useState(false)
+
+  const [couponCode, setCouponCode] = useState('')
+  const [discount, setDiscount] = useState(0)
+  const [appliedCoupon, setAppliedCoupon] = useState(null)
 
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
   const [address, setAddress] = useState('')
 
   const navigate = useNavigate()
+  const location = useLocation()
 
   useEffect(() => {
     const loadCheckoutData = async () => {
@@ -71,6 +78,15 @@ function Checkout() {
     loadCheckoutData()
   }, [navigate])
 
+  useEffect(() => {
+    if (location.state?.selectedCoupon) {
+      const coupon = location.state.selectedCoupon
+      setCouponCode(coupon.code)
+      setAppliedCoupon(coupon)
+      setDiscount(Number(coupon.final_discount || 0))
+    }
+  }, [location.state])
+
   const subtotal = useMemo(() => {
     return items.reduce((sum, item) => {
       const price = Number(item.products?.price || 0)
@@ -81,6 +97,78 @@ function Checkout() {
   const totalQuantity = useMemo(() => {
     return items.reduce((sum, item) => sum + item.quantity, 0)
   }, [items])
+
+  const finalTotal = useMemo(() => {
+    return Math.max(Number(subtotal) - Number(discount), 0)
+  }, [subtotal, discount])
+
+  const handleApplyCoupon = async () => {
+    if (!user) return
+
+    const trimmedCode = couponCode.trim().toUpperCase()
+
+    if (!trimmedCode) {
+      Swal.fire({
+        title: 'ยังไม่ได้กรอกคูปอง',
+        text: 'กรุณากรอกโค้ดคูปองก่อน',
+        icon: 'warning',
+        confirmButtonColor: '#38bdf8',
+      })
+      return
+    }
+
+    try {
+      setCouponLoading(true)
+
+      const result = await validateCoupon({
+        code: trimmedCode,
+        totalPrice: subtotal,
+        userId: user.id,
+      })
+
+      if (!result?.valid) {
+        setAppliedCoupon(null)
+        setDiscount(0)
+
+        Swal.fire({
+          title: 'ใช้คูปองไม่ได้',
+          text: result?.message || 'คูปองไม่ถูกต้อง',
+          icon: 'error',
+          confirmButtonColor: '#ef4444',
+        })
+        return
+      }
+
+      setCouponCode(trimmedCode)
+      setAppliedCoupon(result)
+      setDiscount(Number(result.final_discount || 0))
+
+      Swal.fire({
+        title: 'ใช้คูปองสำเร็จ',
+        text: `ส่วนลด ${Number(result.final_discount || 0).toFixed(2)} บาท`,
+        icon: 'success',
+        confirmButtonColor: '#38bdf8',
+      })
+    } catch (error) {
+      setAppliedCoupon(null)
+      setDiscount(0)
+
+      Swal.fire({
+        title: 'ตรวจคูปองไม่สำเร็จ',
+        text: error.message,
+        icon: 'error',
+        confirmButtonColor: '#ef4444',
+      })
+    } finally {
+      setCouponLoading(false)
+    }
+  }
+
+  const handleRemoveCoupon = () => {
+    setCouponCode('')
+    setDiscount(0)
+    setAppliedCoupon(null)
+  }
 
   const handlePlaceOrder = async (e) => {
     e.preventDefault()
@@ -116,8 +204,9 @@ function Checkout() {
             shipping_phone: trimmedPhone,
             shipping_address: trimmedAddress,
             subtotal,
-            discount_amount: 0,
-            total_amount: subtotal,
+            coupon_code: appliedCoupon?.code || null,
+            discount_amount: discount,
+            total_amount: finalTotal,
             status: 'pending',
             payment_status: 'unpaid',
           },
@@ -126,6 +215,19 @@ function Checkout() {
         .single()
 
       if (orderError) throw orderError
+
+      if (appliedCoupon?.code) {
+        const couponResult = await applyCoupon({
+          code: appliedCoupon.code,
+          totalPrice: subtotal,
+          userId: user.id,
+          orderId: order.id,
+        })
+
+        if (!couponResult?.success) {
+          throw new Error(couponResult?.message || 'บันทึกการใช้คูปองไม่สำเร็จ')
+        }
+      }
 
       const orderItemsPayload = items.map((item) => {
         const product = item.products
@@ -241,6 +343,53 @@ function Checkout() {
               />
             </div>
 
+            <div className="mb-6 rounded-xl border border-sky-100 bg-sky-50 p-4">
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                โค้ดคูปอง
+              </label>
+
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value)}
+                  placeholder="กรอกโค้ดคูปอง"
+                  className="w-full rounded-lg border bg-white p-3 outline-none focus:border-sky-400"
+                />
+                <button
+                  type="button"
+                  onClick={handleApplyCoupon}
+                  disabled={couponLoading}
+                  className="rounded-lg bg-sky-400 px-4 py-3 font-semibold text-white transition hover:bg-sky-500 disabled:cursor-not-allowed disabled:bg-sky-200"
+                >
+                  {couponLoading ? 'กำลังตรวจ...' : 'ใช้คูปอง'}
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => navigate('/coupons')}
+                className="mt-3 text-sm font-medium text-sky-600 hover:underline"
+              >
+                ดูคูปองทั้งหมด
+              </button>
+
+              {appliedCoupon && (
+                <div className="mt-3 flex items-center justify-between rounded-lg bg-green-50 px-3 py-2 text-sm">
+                  <span className="text-green-700">
+                    ใช้คูปอง {appliedCoupon.code} สำเร็จ
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleRemoveCoupon}
+                    className="font-medium text-red-500 hover:text-red-600"
+                  >
+                    ลบคูปอง
+                  </button>
+                </div>
+              )}
+            </div>
+
             <button
               type="submit"
               disabled={submitting}
@@ -290,9 +439,19 @@ function Checkout() {
               <span>{totalQuantity} ชิ้น</span>
             </div>
 
+            <div className="mt-3 flex items-center justify-between text-gray-600">
+              <span>ราคาสินค้ารวม</span>
+              <span>฿{Number(subtotal).toFixed(2)}</span>
+            </div>
+
+            <div className="mt-3 flex items-center justify-between text-gray-600">
+              <span>ส่วนลด</span>
+              <span>- ฿{Number(discount).toFixed(2)}</span>
+            </div>
+
             <div className="mt-3 flex items-center justify-between text-lg font-bold text-gray-800">
               <span>ยอดรวมสุทธิ</span>
-              <span>฿{subtotal}</span>
+              <span>฿{Number(finalTotal).toFixed(2)}</span>
             </div>
           </div>
         </div>
