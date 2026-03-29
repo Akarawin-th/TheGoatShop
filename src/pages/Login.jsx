@@ -153,7 +153,7 @@ function Login() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-lg bg-sky-400 py-3 font-semibold text-white transition hover:bg-sky-500 disabled:cursor-not-allowed disabled:bg-sky-200"
+          className="cursor-pointer w-full rounded-lg bg-sky-400 py-3 font-semibold text-white transition hover:bg-sky-500 disabled:cursor-not-allowed disabled:bg-sky-200"
         >
           {loading ? 'กำลังเข้าสู่ระบบ...' : 'Login'}
         </button>

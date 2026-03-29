@@ -22,14 +22,14 @@ function HeroSection({
 
           <button
             onClick={prevBanner}
-            className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2 text-white"
+            className="cursor-pointer absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2 text-white"
           >
             <ChevronLeft />
           </button>
 
           <button
             onClick={nextBanner}
-            className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2 text-white"
+            className="cursor-pointer absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2 text-white"
           >
             <ChevronRight />
           </button>
@@ -56,7 +56,7 @@ function HeroSection({
             </p>
             <button
               onClick={() => navigate('/coming-soon')}
-              className="mt-4 rounded-full bg-white px-5 py-2 font-semibold text-sky-500 transition hover:bg-sky-50"
+              className="cursor-pointer mt-4 rounded-full bg-white px-5 py-2 font-semibold text-sky-500 transition hover:bg-sky-50"
             >
               ดูสินค้า
             </button>
