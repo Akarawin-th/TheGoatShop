@@ -79,7 +79,10 @@ function ProductGrid({ products, selectedCategory, onClearCategory }) {
                 </span>
 
                 <button
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    navigate(`/product/${product.id}`)
+                  }}
                   className="translate-y-2 rounded-lg bg-sky-400 px-3 py-1.5 text-sm text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 hover:bg-sky-500"
                 >
                   ดูสินค้า
