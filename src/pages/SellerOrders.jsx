@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Swal from 'sweetalert2'
+import { ArrowLeft } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 function SellerOrders() {
@@ -20,7 +21,6 @@ function SellerOrders() {
       }
 
       try {
-        // ✅ Step 1: ดึง product ของ seller
         const { data: products, error: productError } = await supabase
           .from('products')
           .select('id')
@@ -28,7 +28,7 @@ function SellerOrders() {
 
         if (productError) throw productError
 
-        const productIds = (products || []).map(p => p.id)
+        const productIds = (products || []).map((p) => p.id)
 
         if (productIds.length === 0) {
           setOrders([])
@@ -36,7 +36,6 @@ function SellerOrders() {
           return
         }
 
-        // ✅ Step 2: ดึง order_items ที่มี product ของ seller
         const { data: orderItems, error: oiError } = await supabase
           .from('order_items')
           .select('order_id')
@@ -44,7 +43,7 @@ function SellerOrders() {
 
         if (oiError) throw oiError
 
-        const orderIds = [...new Set(orderItems.map(i => i.order_id))]
+        const orderIds = [...new Set((orderItems || []).map((i) => i.order_id))]
 
         if (orderIds.length === 0) {
           setOrders([])
@@ -52,7 +51,6 @@ function SellerOrders() {
           return
         }
 
-        // ✅ Step 3: ดึง orders จริง
         const { data: ordersData, error: ordersError } = await supabase
           .from('orders')
           .select('*')
@@ -67,6 +65,7 @@ function SellerOrders() {
           title: 'โหลดออเดอร์ไม่สำเร็จ',
           text: error.message,
           icon: 'error',
+          confirmButtonColor: '#ef4444',
         })
       } finally {
         setLoading(false)
@@ -76,26 +75,62 @@ function SellerOrders() {
     loadOrders()
   }, [navigate])
 
-  if (loading) return <div className="p-6">Loading...</div>
+  if (loading) {
+    return <div className="p-6">Loading...</div>
+  }
 
   return (
     <div className="min-h-screen bg-[#f5f5f5] px-4 py-10">
       <div className="mx-auto max-w-6xl">
-        <h1 className="text-3xl font-bold mb-6">ออเดอร์ของร้าน</h1>
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-gray-800">ออเดอร์ของร้าน</h1>
+
+          <button
+            onClick={() => navigate('/home')}
+            className="flex items-center gap-2 rounded-lg bg-sky-400 px-4 py-2 font-medium text-white transition hover:bg-sky-500"
+          >
+            <ArrowLeft size={16} />
+            กลับ Home
+          </button>
+        </div>
 
         {orders.length === 0 ? (
-          <div className="bg-white p-6 rounded-xl shadow">
-            ยังไม่มีออเดอร์
+          <div className="rounded-xl bg-white p-8 shadow">
+            <h2 className="text-lg font-semibold text-gray-800">ยังไม่มีออเดอร์</h2>
+            <p className="mt-2 text-sm text-gray-500">
+              เมื่อมีลูกค้าสั่งซื้อสินค้า ออเดอร์จะมาแสดงที่หน้านี้
+            </p>
           </div>
         ) : (
-          orders.map(order => (
-            <div key={order.id} className="bg-white p-6 mb-4 rounded-xl shadow">
-              <h2 className="font-bold">{order.order_number}</h2>
-              <p>สถานะ: {order.status}</p>
-              <p>การชำระเงิน: {order.payment_status}</p>
-              <p>ยอด: ฿{order.total_amount}</p>
-            </div>
-          ))
+          <div className="space-y-4">
+            {orders.map((order) => (
+              <div
+                key={order.id}
+                className="rounded-xl bg-white p-6 shadow transition hover:shadow-md"
+              >
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-800">
+                      {order.order_number}
+                    </h2>
+                    <p className="mt-1 text-sm text-gray-500">
+                      สถานะคำสั่งซื้อ: {order.status}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      การชำระเงิน: {order.payment_status}
+                    </p>
+                  </div>
+
+                  <div className="text-left sm:text-right">
+                    <p className="text-sm text-gray-500">ยอดรวม</p>
+                    <p className="text-xl font-bold text-sky-600">
+                      ฿{Number(order.total_amount || 0).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </div>
